@@ -1,9 +1,26 @@
-New code repository!
-As you might have noticed, the development of this repository has been limited to maintenance and bug fixes for some time now.  The reason is that there has been a collaborative effort to overhaul Spearmint into a new codebase.  This includes both algorithmic/theoretical and engineering improvements.  Check it out at https://github.com/HIPS/Spearmint.  Note that the new repository is under a non-commercial license with a contributor license agreement.  If you prefer not to agree to the license, you can freely use code here (though it is a bit older).
+Spearmint the Theano Edition
+----------------------------
+
+Spearmint uses Gaussian Processes to automatically optimize hyper parameter.
+This is a fork of Spearmint for the deep learning community.
+More specifically, it provides support for Theano users.
+
+We introduce two features:
+
+1.  support to run Spearmint experiments on multiple GPUs
+
+ 	For this feature I would like to acknowledge [Iain Murray](http://homepages.inf.ed.ac.uk/imurray2/), who provided the core of that feature.
+
+
+2. an explicit example based on Keras' [MNIST-CNN example](https://github.com/fchollet/keras/blob/master/examples/mnist_cnn.py)
+
+
+		cd spearmint/bin/
+		./spearmint ../examples/mnist/config.pb --driver=local --method=GPEIOptChooser --method-args=noiseless=1 --grid-size=100 --polling-time=20.
+
 
 Spearmint
 ---------
-
 Spearmint is a package to perform Bayesian optimization according to the
 algorithms outlined in the paper:  
 
@@ -38,7 +55,7 @@ On Ubuntu linux you can install this package using the command:
 Note that you should be able to install protocol-buffers from source without requiring administrator privileges.  Otherwise, on Ubuntu linux you can install this package using the command:
 
 		apt-get install python-protobuf
-						
+
 	and on Mac (if you use homebrew) with:
 
 		brew install protobuf
@@ -59,10 +76,10 @@ designed to run experiments in parallel (spawning a new experiment as
 soon a result comes in), this requires some engineering.  The current
 implementations of these are in the 'spearmint' and 'spearmint-lite' subdirectories:
 
-**Spearmint** is designed to automatically manage the launching and associated bookkeeping 
+**Spearmint** is designed to automatically manage the launching and associated bookkeeping
 of experiments in either a single machine or cluster environment.  This requires that you provide
 a 'wrapper' in a supported language (currently Python or Matlab) and a configuration file detailing parameters
-to be tuned and their respective bounds. The wrapper must accept parameter values and then return simply a value which you wish to minimize with respect to the parameters. Spearmint will then iteratively call the wrapper with different 
+to be tuned and their respective bounds. The wrapper must accept parameter values and then return simply a value which you wish to minimize with respect to the parameters. Spearmint will then iteratively call the wrapper with different
 parameter settings in an order that seeks to find the minimum value in as few evaluations (or cost) as possible.
 
 **Spearmint-lite** is the 'bare-bones' stripped version of the code.
@@ -79,7 +96,7 @@ Running the automated code: Spearmint
 --------------------------------------------------------
 
 The simplest way to get to know the code is probably to look at an
-example.  In order to start a new experiment, you must create a directory 
+example.  In order to start a new experiment, you must create a directory
 that includes a wrapper script and config file.
 We have created one simple example for you that optimizes the
 'Braninhoo' benchmark in the subdirectory **examples/braninpy**.  Take a look at
@@ -151,13 +168,13 @@ completed thus far.  The output directory contains a text file for
 each job-id, containing the output of that job.  So if you want to
 see, e.g. what the output (i.e. standard out and standard error) was
 for the best job (as obtained from trace.csv) you can look up
-job-id.txt in the output directory. 
+job-id.txt in the output directory.
 
  If you are debugging your code,
 or the code is crashing for some reason, it's a good idea to look at
 these files. Finally for ease of use, spearmint also prints out at
 each iteration a file called 'best_job_and_result.txt' that contains the
-best result observed so far, the job-id it came from and a dump of 
+best result observed so far, the job-id it came from and a dump of
 the names and values of all of the parameters corresponding to that result.
 
 A script, bin/cleanup, is provided to completely restart an experiment
@@ -189,7 +206,7 @@ Using the `--driver=local` flag will run Spearmint on a single machine with pote
 Running spearmint with the flag `-w` will spawn a local web server that will display useful info and statistics about your optimization run in a much more interpretable and intuitive interface than the command line.  Spearmint will provide a link to the status page that you can simply paste into a browser window.
 
 
-Running the basic code: Spearmint-lite 
+Running the basic code: Spearmint-lite
 ---------------------------------------
 
 Spearmint-lite is designed to be simple.  To run an experiment in
@@ -201,22 +218,22 @@ objects.  As in the protocol buffer format above, each object must
 have a name, a type (float, int or enum), a 'min', a 'max' and a
 'size'. Nothing else needs to be specified.  
 
-Go back to the top-level directory and run: 
+Go back to the top-level directory and run:
 
 	python spearmint-lite.py braninpy
 
 Spearmint-lite will run one iteration of Bayesian
 optimization and write out to a file named results.dat in the braninpy
 subdirectory.  results.dat will contain a white-space delimited line
-for each experiment, of the format: 
+for each experiment, of the format:
 `<result> <time-taken> <list of parameters in the same order as config.json>`
 
-Spearmint will propose new experiments and append them to results.dat each 
-time it is run. Each proposed experiment will have a 'pending' result and 
-time-taken, indicated by the letter P. The user must then run the experiment 
+Spearmint will propose new experiments and append them to results.dat each
+time it is run. Each proposed experiment will have a 'pending' result and
+time-taken, indicated by the letter P. The user must then run the experiment
 and fill in these values. Note that the time can safely be set to an arbitrary
-value if the chooser module does not use it (only GPEIperSecChooser currently 
-does). Spearmint will condition on the pending experiments when proposing new 
+value if the chooser module does not use it (only GPEIperSecChooser currently
+does). Spearmint will condition on the pending experiments when proposing new
 ones, so any number of experiments can be conducted in parallel.
 
 A script, **cleanup.sh**, is provided to completely clean up all the intermediate
@@ -224,7 +241,7 @@ files and results in an experimental directory and restart the
 experiment from scratch.
 
 Chooser modules:
---------------- 
+---------------
 
 The chooser modules implement functions that tell spearmint which next
 job to run.  Some correspond to 'acquisition functions' in the
@@ -243,7 +260,7 @@ coarse-to-fine grid.
 
 * **RandomChooser**: Experiments are sampled randomly from the unit hypercube.
 
-* **GPEIOptChooser:** The GP EI MCMC algorithm from the paper. Jobs 
+* **GPEIOptChooser:** The GP EI MCMC algorithm from the paper. Jobs
 are first sampled densely from a dense grid on the unit hypercube
 and then the best candidates are optimized 'fine-tuned' according
 to EI.
