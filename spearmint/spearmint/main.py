@@ -44,6 +44,8 @@ from ExperimentGrid  import *
 from helpers         import *
 from runner          import job_runner
 
+import gpu_lock
+
 # Use a global for the web process so we can kill it cleanly on exit
 web_proc = None
 
@@ -126,7 +128,7 @@ def get_available_port(portnum):
 def start_web_view(options, experiment_config, chooser):
     '''Start the web view in a separate process.'''
 
-    from spearmint.web.app import app    
+    from spearmint.web.app import app
     port = get_available_port(options.web_status_port)
     print "Using port: " + str(port)
     if options.web_status_host:
@@ -142,6 +144,10 @@ def start_web_view(options, experiment_config, chooser):
 
 
 def main():
+    #free all GPUs in case there are old scripts laying around
+    for id in gpu_lock.board_ids():
+        gpu_lock.free_lock(id)
+
     (options, args) = parse_args()
 
     if options.job:
@@ -327,4 +333,3 @@ if __name__=='__main__':
     print "setting up signal handler..."
     signal.signal(signal.SIGINT, sigint_handler)
     main()
-

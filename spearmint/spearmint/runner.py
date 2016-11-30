@@ -6,6 +6,7 @@ from spearmint_pb2   import *
 from ExperimentGrid  import *
 from helpers         import *
 
+import gpu_lock
 
 # System dependent modules
 DEFAULT_MODULES = [ 'packages/epd/7.1-2',
@@ -126,11 +127,21 @@ def run_python_job(job):
         else:
             raise Exception("Unknown parameter type.")
 
+    # find free gpu and set environment flag
+    gpu_id = gpu_lock.obtain_lock_id_to_hog()
+
+    if gpu_id is not -1:
+        os.environ['THEANO_FLAGS']='floatX=float32,device=gpu'+str(gpu_id)
+
+
     # Load up this module and run
     module  = __import__(job.name)
     result = module.main(job.id, params)
 
     log("Got result %f\n" % (result))
+
+    # free gpu
+    gpu_lock.free_lock(gpu_id)
 
     # Store the result.
     job.value = result
@@ -202,5 +213,3 @@ def run_mcr_job(job):
     cmd = './run_%s.sh %s %s' % (job.name, mcr_loc, job_file_for(job))
     log("Executing command '%s'\n" % (cmd))
     sh(cmd)
-
-
